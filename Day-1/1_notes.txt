@@ -1,0 +1,84 @@
+* can be written either in provider.tf file or in version.tf file
+        terraform {
+            required_providers {
+                aws = {
+                source  = "hashicorp/aws"
+                version = "5.40.0"
+                }
+            }
+        }
+* terraform.lock.hcl:
+----------------------
+terraform.lock.hcl is Terraform's dependency lock file. 
+It ensures that Terraform uses the same versions of providers across different runs, 
+making your infrastructure deployments consistent.
+
+When you run terraform init, Terraform downloads provider plugins (like AWS, Azure, or Google Cloud). The lock file records:
+
+    1. The exact provider versions used.
+    2. The source URL of each provider.
+    3. A hash checksum to verify integrity.
+
+    terraform init -upgrade : to update the "terraform.lock.hcl" file
+
+* terraform plan:
+-------------------
+    this command is executed to preview the changes Terraform will make to your infrastructure before applying them.
+
+    1. Always run terraform plan before terraform apply to check for errors.
+    2. To save the plan for later execution, below command can be used:
+            terraform plan -out=tfplan
+    3. the we can apply the plan using below command:
+            terraform apply tfplan
+
+* terraform apply:
+------------------
+    The terraform apply command is used to create, update, or delete infrastructure based on your Terraform configuration.
+    after executing the command :: Terraform will:
+    ---------------------------------------------
+        1. Read your .tf files (Terraform configuration).
+        2. Compare the current state with the desired state.
+        3. Show the proposed changes (just like terraform plan).
+        4. Ask for confirmation before making changes.
+        once confirmation is given as "yes" it will appy the changes and create the resources
+
+    terraform apply -auto-approve: If you want to skip the confirmation prompt, use
+
+* terraform.tfstate:
+-----------------------
+    ** It's a JSON file containing:
+        1. Resource details (IDs, attributes, dependencies)
+        2. Provider metadata
+        3. Terraform version info
+
+    1. after running the "terraform apply" command a new file "terraform.tfstate" will be created
+
+    2. "terraform.tfstate" is Terraform's state file that stores the current state of your infrastructure. 
+       It tracks real-world resources that Terraform manages, ensuring changes are applied correctly.
+    3. terraform.tfstate will:
+        a. Tracks Resources → Maps Terraform configurations to actual infrastructure.
+        b. Detects Changes → Compares desired vs. actual infrastructure.
+        c. Ensures Consistency → Prevents duplicate resource creation.
+        d. Used in Terraform Commands → terraform plan, apply, and destroy rely on it.
+    
+    4. For teams & automation, store it remotely in an S3 bucket or Terraform Cloud:
+        terraform {
+            backend "s3" {
+                bucket = "your-terraform-state-bucket"
+                key    = "terraform.tfstate"
+                region = "us-east-1"
+            }
+        }
+    5. commands:
+        a. terraform state list
+        b. terraform state show aws_instance.my_ec2
+
+        c. terraform state pull > state.json
+           # Edit `state.json` and then push it back
+           terraform state push state.json
+    Direct edits can break Terraform! Use terraform state mv or terraform state rm instead.
+
+* terraform destroy: destroy the insra created
+
+
+
