@@ -18,3 +18,9 @@ variable "key_pair_name" {
     default = ""
   
 }
+
+variable "avail_zone" {
+  description = "availability zone"
+  type = string
+  default = "ap-south-1a"
+}

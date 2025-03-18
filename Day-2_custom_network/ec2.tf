@@ -16,6 +16,7 @@ resource "aws_instance" "pvt_ec2" {
   key_name = var.key_pair_name
   subnet_id = aws_subnet.dev_pvt_subnet.id
   security_groups = [aws_security_group.dev_sg.id]
+  availability_zone = "ap-south-1a"
   tags = {
     Name = "private ec2"
   }

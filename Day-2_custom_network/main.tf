@@ -20,6 +20,7 @@ resource "aws_internet_gateway" "dev_igw" {
 resource "aws_subnet" "dev_subnet" {
   vpc_id = aws_vpc.dev_vpc.id
   cidr_block = "10.0.0.0/24"
+  availability_zone = var.avail_zone
   tags = {
     Name = "subnet_tf"
   }
@@ -59,6 +60,7 @@ resource "aws_nat_gateway" "dev_ngw" {
 resource "aws_subnet" "dev_pvt_subnet" {
   vpc_id = aws_vpc.dev_vpc.id
   cidr_block = "10.0.1.0/24"
+  availability_zone = var.avail_zone
   tags = {
     Name = "private_subnet_tf"
   }
