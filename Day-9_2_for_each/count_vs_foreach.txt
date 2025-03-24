@@ -1,0 +1,86 @@
+In Terraform, count and for_each are both used to create multiple resources dynamically, but they have key differences in usage and behavior.
+
+* count (Index-Based Iteration)
+--------------------------------
+    1. Uses an integer value to create multiple instances of a resource
+    2. Works well when creating identical resources
+    3. Access individual elements using count.index
+    4. Changes in the list can cause resource recreation due to index shifts
+        index shifts: Index shift occurs when using count in Terraform and modifying the list of resources. 
+                      This happens because Terraform relies on index-based tracking, 
+                      meaning that when an item is removed or added, the indices of subsequent elements change. 
+                      This can lead to unexpected resource deletion and recreation.
+    example:
+        resource "aws_instance" "example" {
+            count = length(var.instance_names)
+            ami   = "ami-123456"
+            instance_type = "t2.micro"
+            tags = {
+                Name = var.instance_names[count.index]
+            }
+        }
+
+        variable "instance_names" {
+            default = ["dev", "staging", "prod"]
+        }
+    This creates 3 instances: Instance-0 (dev), Instance-1 (staging), Instance-2 (prod)
+
+    Removing an Item Causes Index Shift
+        Now, if you remove "dev" from instance_names:
+        variable "instance_names" {
+            default = ["staging", "prod"]    ---> dev removed
+        }
+    
+    Terraform sees:
+        "staging" moves from index 1 → 0
+        "prod" moves from index 2 → 1
+    now, when i do apply
+        a. Instance-0 (dev) gets destroyed.
+        b. Instance-1 (staging) gets destroyed and recreated because its index changed.
+        c. Instance-2 (prod) gets destroyed and recreated for the same reason.
+
+        This is called "index shifts"
+        to avoid index shifts, "for_each" is used
+
+* for_each (Key-Based Iteration)  # similar to dictionary in python
+--------------------------------
+    1. Uses a set or map for iteration.
+    2. deal for unique identifiers like names, IDs, or maps
+    3. Access elements via each.key and each.value
+    4. Avoids unnecessary resource recreation when elements are added or removed
+
+    for_each in Terraform can be used with sets, lists (converted to sets), and maps. The choice depends on the data structure you need.
+
+    example:
+        list converted to set:
+        ----------------------
+        resource "aws_instance" "example" {
+            for_each = toset(["dev", "staging", "prod"])
+            ami      = "ami-123456"
+            instance_type = "t2.micro"
+            tags = {
+                Name = each.key
+            }
+        }
+
+        using map
+        ---------
+        variable "instances" {
+            default = {
+                dev     = "t2.micro"
+                staging = "t2.small"
+                prod    = "t2.medium"
+            }
+        }
+
+        resource "aws_instance" "example" {
+        for_each = var.instances
+        ami      = "ami-123456"
+        instance_type = each.value  # Using value from the map
+            tags = {
+                Name = each.key
+            }
+        }
+        
+
+
